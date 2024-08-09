@@ -1,0 +1,1 @@
+savedcmd_/home/pjd/Documentos/sopes/Tarea1/Module.symvers :=  scripts/mod/modpost -m -a      -o /home/pjd/Documentos/sopes/Tarea1/Module.symvers -T /home/pjd/Documentos/sopes/Tarea1/modules.order -i Module.symvers -e 
