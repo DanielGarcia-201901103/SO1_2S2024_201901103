@@ -1,0 +1,2 @@
+rustc nombrearchivo.rs
+./nombrearchivo
