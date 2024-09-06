@@ -1,0 +1,23 @@
+target/
+Cargo.lock
+.cargo/
+.rustup/
+# Archivos generados por el compilador
+*.rs.bk
+*.rs~
+
+# Archivos temporales
+*.tmp
+*.swp
+*.swo
+
+# Directorios específicos del IDE
+.idea/
+.vscode/
+
+# Archivos específicos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de configuración personal del IDE
+.cargo/config
