@@ -1,0 +1,129 @@
+# Correspondiente al script y el cronjob******************
+1. Crear 4 imagenes docker
+    - Alto consumo  
+        RAM Y CPU   
+    - Bajo consumo
+        RAM Y CPU
+
+2. Crear el cronjob para que cree 10 imagenes cada 30 segundos. Estas 
+imagenes son de manera aleatoria en base a las 4 imagenes creadas anteriormente.
+
+
+# Correspondiente al modulo kernel****************************
+3. En la carpeta /proc guardar la siguiente información:
+    En Mb o Kbs:
+        Total de memoria RAM
+        Memoria RAM libre
+        Memoria RAM en uso
+
+    Procesos de cada contenedor generado por el script
+        PID
+        Nombre
+        Linea de comando que se ejecutó o id del contenedor
+        Vsz(Tamaño de la memoria virtual) en KBs.
+        Rss(Tamaño de memoria física) en Kbs.
+        Porcentaje de memoria utilizada.
+        Porcentaje de CPU utilizado.
+EL archivo a guardar en esta carpeta con esta información es:
+sysinfo_201901103
+
+Estructura del json almacenado como sysinfo_201901103 a manejar para la información:
+{
+ "ram":{
+    "total": 8000, 
+    "libre": 620,
+    "uso": 420
+    }
+ ,
+ "containers":[
+ {
+   "pid": "",
+   "nombre": "",
+   "idContainer": "",
+   "Vsz": 50 ,
+   "Rss": 60,
+   "memoria_usage": 7%,
+   "cpu_usage": 9%
+ },
+ {
+   "pid": "",
+   "nombre": "",
+   "idContainer": "",
+   "Vsz": 50 ,
+   "Rss": 60,
+   "memoria_usage": 7%,
+   "cpu_usage": 9%
+ },
+ .
+ .
+ .
+ ]
+
+}
+Sugerencias:
+- Utilizar la estructura task_struct para poder filtrar de manera correcta únicamente los procesos
+relacionados a los contendores y extraer la información necesaria. 
+
+# Servicio en RUST**********************************************
+
+4. Construir el Gestor de contenedores (rust)
+    Analisis
+    Ejecución
+    Comunicación de los flujos de la ejecución del servicio.
+    
+                                        4.1 Crear un contenedor Administrador de registros que recibe las peticiones http 
+                                            y guardar el id del contenedor
+4.2 Ejecutar el contenedor Administrador de registros, que se 
+    ejecutará hasta recibir un crtl+C.
+    4.2.1 Cada 10 segundos analizará  una serie de procedimientos y analisis.
+        a. Lee el archivo en /proc/sysinfo_201901103
+        b. Deserialización del contenido
+        c. Analisis de la gestion de contenedores
+            Ordenar los contenedores por medio de cpu, ram, vsz y Rss
+            Eliminar contenedores en base a las restricciones
+        d. Genera logs
+        e. Peticiones http al contenedor encargado de administrar logs
+4.3 Al finalizar enviar la ultima petición http al contenedor administrador de logs
+    para así generar las graficas y eliminar el cronjob.
+
+    Deberá imprimir en consola de manera ordenada y estilizada:
+        o La información de la memoria
+        o Los contenedores de alto bajo consumo
+        o Los contenedores de bajo consumo
+        o Los contenedores eliminados
+
+    Existen dos tipos de logs en cuales además de agregar la respectiva información, debe de
+        registrare la fecha y hora.
+        o Los logs de la memoria
+        o Los logs de los procesos
+Restricciones
+- Debe siempre haber 3 contenedores de bajo consumo y estos deben ser los últimos 3
+- Debe siempre haber 2 contenedores de alto consumo y estos deben ser los primeros 2
+- No eliminar el contenedor que gestiona los logs
+
+Sugerencias:
+- Utilizar listas (Vectores)
+- Utilizar una terminal en modo superusuario
+- Utilizar Structs
+- Se recomienda, pero no es obligatorio el uso de threads (hilos) para agilizar la eliminación de
+contenedores.
+
+
+# Contenedor administrador de logs***************************************
+
+Servidor python
+    Recibe peticiones desde RUST
+    Almacena en json los registros y se puede ir actualizando el json con más registros.
+    Peticion final para realizar las graficas con los logs almacenados (con la información del json)
+
+
+Notas:
+- Deberá poder guardar y agregar nuevos registros generados por el servicio de rust en un archivo
+JSON compartido
+- Uso de volúmenes para permitir un binding
+- Deberá generar 2 gráficas con la información de los logs respectivos, estas gráficas quedan a
+discreción del estudiante, pero es fundamental que sean representativas, demostrativas y
+lógicas.
+Sugerencias:
+- Utilizar matplotlib
+- Utilizar fastapi

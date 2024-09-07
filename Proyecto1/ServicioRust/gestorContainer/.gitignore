@@ -1,0 +1,23 @@
+# Directorio de compilación de Cargo
+target/
+
+# Archivos de configuración de Cargo
+Cargo.lock
+
+# Archivos y directorios de caché
+.cargo/
+.rustup/
+
+# Archivos generados por el compilador
+*.rs.bk
+*.rs~
+
+# Archivos temporales
+*.tmp
+*.swp
+*.swo
+
+# Directorios específicos del IDE
+.idea/
+.vscode/
+

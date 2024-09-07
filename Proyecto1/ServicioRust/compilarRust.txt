@@ -1,0 +1,20 @@
+Crear proyecto RUST con cargo
+
+$cargo new nombreProyecto
+$cd nombreProyecto
+
+
+Compilar el proyecto
+
+Dentro de la carpeta del proyecto (nombreProyecto)
+$cargo build
+
+Ejecutar el proyecto
+$cargo run
+
+
+En otro caso se puede verificar que el archivo compile sin 
+crear ejecutable con el siguiente comando:
+$cargo check
+
+Ver documentación: https://doc.rust-lang.org/book/ch01-03-hello-cargo.html
