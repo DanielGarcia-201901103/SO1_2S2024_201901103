@@ -1,1 +1,0 @@
-/home/pjd/Documentos/sopes/SO1_2S2024_201901103/Proyecto1/ServicioRust/gestorContainer/target/debug/gestorContainer: /home/pjd/Documentos/sopes/SO1_2S2024_201901103/Proyecto1/ServicioRust/gestorContainer/src/main.rs

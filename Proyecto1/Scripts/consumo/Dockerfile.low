@@ -1,8 +1,0 @@
-# Dockerfile.low
-FROM ubuntu:latest
-
-# Instalar herramientas necesarias
-RUN apt-get update && apt-get install -y stress-ng
-
-# Ejecutar un proceso que consuma poca CPU y RAM
-CMD ["stress-ng", "--cpu", "1", "--vm", "1", "--vm-bytes", "10M", "--timeout", "300s"]

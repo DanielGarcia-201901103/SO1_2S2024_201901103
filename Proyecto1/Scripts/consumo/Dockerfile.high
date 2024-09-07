@@ -1,8 +1,0 @@
-# Dockerfile.high
-FROM ubuntu:latest
-
-# Instalar herramientas necesarias
-RUN apt-get update && apt-get install -y stress-ng
-
-# Ejecutar un proceso que consuma CPU y RAM
-CMD ["stress-ng", "--cpu", "3", "--vm", "2", "--vm-bytes", "900M", "--timeout", "300s"]
