@@ -1,8 +1,4 @@
-# Dockerfile.high
-FROM ubuntu:latest
+FROM python:3.9-slim
 
-# Instalar herramientas necesarias
-RUN apt-get update && apt-get install -y stress-ng
-
-# Ejecutar un proceso que consuma CPU y RAM
-CMD ["stress-ng", "--cpu", "3", "--vm", "2", "--vm-bytes", "900M", "--timeout", "300s"]
+# Script de alto consumo: realizar cálculos intensivos.
+CMD ["python3", "-c", "import math; [math.factorial(100000) for _ in range(10)]"]

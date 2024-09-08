@@ -1,8 +1,4 @@
-# Dockerfile.low
-FROM ubuntu:latest
+FROM python:3.9-slim
 
-# Instalar herramientas necesarias
-RUN apt-get update && apt-get install -y stress-ng
-
-# Ejecutar un proceso que consuma poca CPU y RAM
-CMD ["stress-ng", "--cpu", "1", "--vm", "1", "--vm-bytes", "10M", "--timeout", "300s"]
+# Script de bajo consumo: imprime un mensaje cada 2 segundos.
+CMD ["python3", "-c", "import time; [print('Bajo consumo') or time.sleep(2) for _ in range(100)];"]
