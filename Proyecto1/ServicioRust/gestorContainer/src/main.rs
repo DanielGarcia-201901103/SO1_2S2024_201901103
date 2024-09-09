@@ -1,78 +1,3 @@
-/*use reqwest::Client;
-use serde::{Deserialize, Serialize};
-use std::error::Error;
-use tokio;
-use chrono::Utc;
-
-#[derive(Serialize, Debug)]  // Agregado Debug aquí
-struct LogItem {
-    timestamp: String,
-    level: String,
-    message: String,
-}
-
-#[derive(Deserialize)]
-struct StatusResponse {
-    status: String,
-}
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-    // Crear cliente HTTP
-    let client = Client::new();
-
-    // Dirección del contenedor de Python (asegúrate de que los puertos estén correctamente configurados)
-    let python_container_url = "http://localhost:8000";
-
-    // Crear un log de prueba
-    let log_item = LogItem {
-        timestamp: Utc::now().to_rfc3339(),
-        level: "INFO".into(),
-        message: "Este es un log de prueba".into(),
-    };
-
-    // Enviar log
-    let response = client
-        .post(&format!("{}/logs/", python_container_url))
-        .json(&log_item)  // Aquí estamos enviando el JSON directamente
-        .send()
-        .await?;
-
-    if response.status().is_success() {
-        println!("Log enviado: {}", log_item.message);
-    } else {
-        println!("Error al enviar log: {:?}", response.status());
-        println!("Enviando log: {:?}", log_item); // Ahora log_item implementa Debug
-    }
-
-    // Generar gráficas
-    let response = client
-        .get(&format!("{}/generate-graphs/", python_container_url))
-        .send()
-        .await?;
-
-    if response.status().is_success() {
-        println!("Gráficas generadas con éxito.");
-    } else {
-        println!("Error al generar gráficas: {:?}", response.status());
-    }
-
-    // Realizar petición al endpoint /check/
-    let response = client
-        .get(&format!("{}/check/", python_container_url))
-        .send()
-        .await?;
-
-    if response.status().is_success() {
-        // Deserializar respuesta JSON
-        let status_response: StatusResponse = response.json().await?;
-        println!("Respuesta del endpoint /check/: {}", status_response.status);
-    } else {
-        println!("Error en la petición al endpoint /check/: {:?}", response.status());
-    }
-
-    Ok(())
-}*/
 use std::process::Command;
 use std::io;
 use serde::{Deserialize, Serialize};
@@ -84,6 +9,8 @@ use std::{thread, time::Duration};
 use std::path::Path;
 use std::io::{BufReader, Read};
 use std::fs::File;
+use std::sync::{Arc, Mutex};
+use std::cmp::Ordering;
 
 // Definir estructura para deserializar la respuesta del endpoint /check/
 #[derive(Deserialize)]
@@ -91,13 +18,10 @@ struct StatusResponse {
     status: String,
 }
 
-//********************************************************************************************************************************************
-//                                                                                                            FUNCIONAMIENTO DE DOCKER COMPOSE
 // Función para ejecutar el comando y obtener el ID del contenedor
 fn obtener_id_contenedor() -> Result<String, io::Error> {
-    // Ejecutar docker-compose en un proceso separado
     let status = Command::new("docker-compose")
-        .args(&["up", "--build", "-d"]) // -d para modo detach
+        .args(&["up", "--build", "-d"])
         .current_dir("/home/pjd/Documentos/sopes/SO1_2S2024_201901103/Proyecto1/ContainerAdLogs")
         .status()?;
 
@@ -105,7 +29,6 @@ fn obtener_id_contenedor() -> Result<String, io::Error> {
         return Err(io::Error::new(io::ErrorKind::Other, "Error al ejecutar docker-compose"));
     }
 
-    // Obtener el ID del contenedor en ejecución
     let output = Command::new("docker")
         .arg("ps")
         .arg("-q")
@@ -116,7 +39,6 @@ fn obtener_id_contenedor() -> Result<String, io::Error> {
         return Err(io::Error::new(io::ErrorKind::Other, "Error al obtener el ID del contenedor"));
     }
 
-    // Convertir la salida a String y eliminar posibles caracteres de nueva línea
     let container_id = String::from_utf8(output.stdout)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
         .trim()
@@ -124,15 +46,14 @@ fn obtener_id_contenedor() -> Result<String, io::Error> {
 
     Ok(container_id)
 }
+
 // Función para detener el contenedor Docker dado su ID
 fn detener_contenedor(container_id: &str) -> Result<(), io::Error> {
-    // Ejecutar el comando `docker stop` con el ID del contenedor
     let status = Command::new("docker")
         .arg("stop")
         .arg(container_id)
         .status()?;
 
-    // Verificar si el comando se ejecutó correctamente
     if status.success() {
         println!("Contenedor detenido exitosamente: {}", container_id);
         Ok(())
@@ -148,27 +69,21 @@ fn abrir_terminal() -> std::io::Result<()> {
         .arg("bash")
         .arg("-c")
         .arg("cd /home/pjd/Documentos/sopes/SO1_2S2024_201901103/Proyecto1/ContainerAdLogs && docker-compose up --build; exec bash")
-        .spawn()?;  // Usamos spawn para no bloquear la ejecución
+        .spawn()?;
     Ok(())
 }
-//********************************************************************************************************************************************
-//                                                                                                                 FUNCIONAMIENTO DE ENDPOINTS
+
 // Función asíncrona para verificar el endpoint /check/
 async fn verificar_endpoint() -> Result<(), Box<dyn Error>> {
-    // Crear cliente HTTP
     let client = Client::new();
-
-    // Dirección del contenedor de Python
     let python_container_url = "http://0.0.0.0:8000";
 
-    // Realizar petición al endpoint /check/
     let response = client
         .get(&format!("{}/check/", python_container_url))
         .send()
         .await?;
 
     if response.status().is_success() {
-        // Deserializar respuesta JSON
         let status_response: StatusResponse = response.json().await?;
         println!("Respuesta del endpoint /check/: {}", status_response.status);
     } else {
@@ -178,9 +93,7 @@ async fn verificar_endpoint() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-//********************************************************************************************************************************************
-//                                                                                              FUNCIONAMIENTO DE LA LECTURA SYSINFO_201901103
-
+// Estructura para deserializar la información de la RAM
 #[derive(Deserialize)]
 struct RamInfo {
     total: u64,
@@ -188,33 +101,23 @@ struct RamInfo {
     uso: u64,
 }
 
+// Estructura para deserializar la información de los contenedores
 #[derive(Deserialize)]
 struct Container {
     pid: String,
     nombre: String,
-    idContainer: String,
-    Vsz: u64,
-    Rss: u64,
-    #[serde(rename = "memoria_usage", deserialize_with = "deserialize_percentage")]
-    memoria_usage: f64, // Convertimos el porcentaje a un valor decimal
-    #[serde(rename = "cpu_usage", deserialize_with = "deserialize_percentage")]
-    cpu_usage: f64, // Convertimos el porcentaje a un valor decimal
+    cmdline: String,
+    vsz: u64,
+    rss: u64,
+    memoria_usage: f64,
+    cpu_usage: f64,
 }
 
+// Estructura general que contiene la información de la RAM y los contenedores
 #[derive(Deserialize)]
 struct ContainersInfo {
     ram: RamInfo,
     containers: Vec<Container>,
-}
-
-// Función para deserializar porcentajes del tipo "7%" a f64
-fn deserialize_percentage<'de, D>(deserializer: D) -> Result<f64, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s: String = String::deserialize(deserializer)?;
-    let percentage = s.trim_end_matches('%').parse::<f64>().map_err(serde::de::Error::custom)?;
-    Ok(percentage)
 }
 
 fn read_json_file<P: AsRef<Path>>(path: P) -> Result<ContainersInfo, Box<dyn std::error::Error>> {
@@ -223,103 +126,327 @@ fn read_json_file<P: AsRef<Path>>(path: P) -> Result<ContainersInfo, Box<dyn std
     let mut contents = String::new();
     reader.read_to_string(&mut contents)?;
 
-    // Eliminar cualquier coma final antes de deserializar el JSON
-    let cleaned_contents = contents.replace(",\n  ]", "\n  ]");
+    println!("Contenido del archivo JSON:\n{}", contents);
 
-    let containers_info: ContainersInfo = serde_json::from_str(&cleaned_contents)?;
+    let containers_info: ContainersInfo = serde_json::from_str(&contents)?;
     Ok(containers_info)
 }
 
-fn identify_consumers(containers: &[Container]) {
-    let high_cpu_threshold = 10.0; // Ajustado a un valor más bajo para fines de demostración
-    let low_cpu_threshold = 5.0;  // Ajustado a un valor más bajo para fines de demostración
+// Función para eliminar un contenedor
+fn kill_container(id: &str) {
+    let output = Command::new("sudo")
+        .arg("docker")
+        .arg("stop")
+        .arg(id)
+        .output()
+        .expect("failed to execute process");
 
-    let high_consumers: Vec<&Container> = containers
-        .iter()
-        .filter(|&c| c.cpu_usage > high_cpu_threshold)
-        .collect();
-
-    let low_consumers: Vec<&Container> = containers
-        .iter()
-        .filter(|&c| c.cpu_usage < low_cpu_threshold)
-        .collect();
-
-    println!("High CPU Consumers:");
-    for container in high_consumers {
-        println!(
-            "ID: {}, Nombre: {}, PID: {}, Vsz: {}Kbs, Rss: {}Kbs, CPU Usage: {}%, RAM Usage: {}%",
-            container.idContainer, container.nombre, container.pid, container.Vsz, container.Rss, container.cpu_usage, container.memoria_usage
-        );
-    }
-
-    println!("\nLow CPU Consumers:");
-    for container in low_consumers {
-        println!(
-            "ID: {}, Nombre: {}, PID: {}, Vsz: {}Kbs, Rss: {}Kbs, CPU Usage: {}%, RAM Usage: {}%",
-            container.idContainer, container.nombre, container.pid, container.Vsz, container.Rss, container.cpu_usage, container.memoria_usage
-        );
-    }
+    println!("Matando contenedor con id: {}", id);
+    println!("Output: {:?}", output);
 }
+/*
+// Función para identificar y eliminar contenedores
+fn identify_consumers(containers_info: ContainersInfo, log_container_pid: &str) {
+    let mut containers = containers_info.containers;
 
+    // Ordena los contenedores en base a cpu_usage, memoria_usage, vsz y rss
+    containers.sort_by(|a, b| {
+        b.cpu_usage
+            .partial_cmp(&a.cpu_usage)
+            .unwrap_or(Ordering::Equal)
+            .then_with(|| b.memoria_usage.partial_cmp(&a.memoria_usage).unwrap_or(Ordering::Equal))
+            .then_with(|| b.vsz.partial_cmp(&a.vsz).unwrap_or(Ordering::Equal))
+            .then_with(|| b.rss.partial_cmp(&a.rss).unwrap_or(Ordering::Equal))
+    });
 
-// Nueva función async que contiene la lógica de main
-async fn process_containers() -> Result<(), Box<dyn std::error::Error>> {
-    let path = "/proc/sysinfo_201901103";
-    let containers_info = read_json_file(path)?;
+    let mut high_consumers = containers.split_off(containers.len().saturating_sub(3));
+    let mut low_consumers = containers.split_off(2);
 
+    let log_container_pid = log_container_pid.to_string();
+
+    let mut containers_to_remove: Vec<String> = Vec::new();
+
+    // En la lista de alto consumo, eliminamos todos los contenedores excepto los 2 primeros
+    if high_consumers.len() > 2 {
+        for container in high_consumers.iter().skip(2) {
+            if container.pid != log_container_pid {
+                containers_to_remove.push(container.pid.clone());
+            }
+        }
+    }
+
+    // En la lista de bajo consumo, eliminamos todos los contenedores excepto los 3 últimos
+    if low_consumers.len() > 3 {
+        for container in low_consumers.iter().take(low_consumers.len() - 3) {
+            if container.pid != log_container_pid {
+                containers_to_remove.push(container.pid.clone());
+            }
+        }
+    }
+
+    // Ejecutar la eliminación en paralelo usando hilos
+    let containers_to_remove = Arc::new(Mutex::new(containers_to_remove));
+    let mut handles = vec![];
+
+    for _ in 0..containers_to_remove.lock().unwrap().len() {
+        let containers_to_remove = Arc::clone(&containers_to_remove);
+        let handle = thread::spawn(move || {
+            let pids = containers_to_remove.lock().unwrap();
+            for pid in pids.iter() {
+                kill_container(pid);
+            }
+        });
+        handles.push(handle);
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    // Imprimir la información de la RAM
     println!(
-        "RAM Total: {}MB, RAM Libre: {}MB, RAM Uso: {}MB",
+        "RAM Total: {} Kb, RAM Libre: {} Kb, RAM Uso: {} Kb",
         containers_info.ram.total, containers_info.ram.libre, containers_info.ram.uso
     );
 
-    identify_consumers(&containers_info.containers);
+    // Imprimir los contenedores restantes
+    println!("Contenedores restantes:");
+    for container in containers {
+        println!(
+            "cmdline: {}, Nombre: {}, PID: {}, Vsz: {} Kb, Rss: {} Kb, CPU Usage: {:.2}%, RAM Usage: {:.2}%",
+            container.cmdline, container.nombre, container.pid, container.vsz, container.rss, container.cpu_usage * 100.0, container.memoria_usage * 100.0
+        );
+    }
+    println!("Antes de los logs");
+    // Generar logs
+    let log_time = Utc::now().to_rfc3339();
+    let log_message = format!(
+        "[{}] Información de la RAM: Total: {} Kb, Libre: {} Kb, Uso: {} Kb",
+        log_time, containers_info.ram.total, containers_info.ram.libre, containers_info.ram.uso
+    );
+    println!("{}", log_message);
 
+    // Enviar petición HTTP al contenedor de logs
+    let client = Client::new();
+    let log_container_url = "http://0.0.0.0:8000"; // Dirección del contenedor administrador de logs
+
+    tokio::spawn(async move {
+        if let Err(e) = client
+            .post(&format!("{}/log/", log_container_url))
+            .json(&log_message)
+            .send()
+            .await
+        {
+            eprintln!("Error al enviar log al contenedor de logs: {}", e);
+        }
+    });
+}*/
+fn identify_consumers(containers_info: ContainersInfo, log_container_pid: &str) {
+    let mut containers = containers_info.containers;
+
+    // Ordena los contenedores en base a cpu_usage, memoria_usage, vsz y rss
+    containers.sort_by(|a, b| {
+        b.cpu_usage
+            .partial_cmp(&a.cpu_usage)
+            .unwrap_or(Ordering::Equal)
+            .then_with(|| b.memoria_usage.partial_cmp(&a.memoria_usage).unwrap_or(Ordering::Equal))
+            .then_with(|| b.vsz.partial_cmp(&a.vsz).unwrap_or(Ordering::Equal))
+            .then_with(|| b.rss.partial_cmp(&a.rss).unwrap_or(Ordering::Equal))
+    });
+
+    // Comprobar si el vector tiene al menos 2 elementos antes de dividir
+    let mut high_consumers = if containers.len() > 2 {
+        containers.split_off(containers.len() - 2)
+    } else {
+        Vec::new()
+    };
+
+    // Comprobar si el vector tiene al menos 3 elementos antes de dividir
+    let mut low_consumers = if containers.len() > 3 {
+        containers.split_off(containers.len() - 3)
+    } else {
+        Vec::new()
+    };
+
+    let log_container_pid = log_container_pid.to_string();
+
+    let mut containers_to_remove: Vec<String> = Vec::new();
+
+    // En la lista de alto consumo, eliminamos todos los contenedores excepto los 2 primeros
+    if high_consumers.len() > 2 {
+        for container in high_consumers.iter().skip(2) {
+            if container.pid != log_container_pid {
+                containers_to_remove.push(container.pid.clone());
+            }
+        }
+    }
+
+    // En la lista de bajo consumo, eliminamos todos los contenedores excepto los 3 últimos
+    if low_consumers.len() > 3 {
+        for container in low_consumers.iter().take(low_consumers.len() - 3) {
+            if container.pid != log_container_pid {
+                containers_to_remove.push(container.pid.clone());
+            }
+        }
+    }
+
+    // Ejecutar la eliminación en paralelo usando hilos
+    let containers_to_remove = Arc::new(Mutex::new(containers_to_remove));
+    let mut handles = vec![];
+
+    for _ in 0..containers_to_remove.lock().unwrap().len() {
+        let containers_to_remove = Arc::clone(&containers_to_remove);
+        let handle = thread::spawn(move || {
+            let pids = containers_to_remove.lock().unwrap();
+            for pid in pids.iter() {
+                kill_container(pid);
+            }
+        });
+        handles.push(handle);
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    // Imprimir la información de la RAM
+    println!(
+        "RAM Total: {} Kb, RAM Libre: {} Kb, RAM Uso: {} Kb",
+        containers_info.ram.total, containers_info.ram.libre, containers_info.ram.uso
+    );
+
+    // Imprimir los contenedores restantes
+    println!("Contenedores restantes:");
+    for container in containers {
+        println!(
+            "cmdline: {}, Nombre: {}, PID: {}, Vsz: {} Kb, Rss: {} Kb, CPU Usage: {:.2}%, RAM Usage: {:.2}%",
+            container.cmdline, container.nombre, container.pid, container.vsz, container.rss, container.cpu_usage * 100.0, container.memoria_usage * 100.0
+        );
+    }
+
+    // Generar logs
+    let log_time = Utc::now().to_rfc3339();
+    let log_message = format!(
+        "[{}] Información de la RAM: Total: {} Kb, Libre: {} Kb, Uso: {} Kb",
+        log_time, containers_info.ram.total, containers_info.ram.libre, containers_info.ram.uso
+    );
+    println!("{}", log_message);
+
+    // Enviar petición HTTP al contenedor de logs
+    let client = Client::new();
+    let log_container_url = "http://0.0.0.0:8000"; // Dirección del contenedor administrador de logs
+
+    tokio::spawn(async move {
+        if let Err(e) = client
+            .post(&format!("{}/log/", log_container_url))
+            .json(&log_message)
+            .send()
+            .await
+        {
+            eprintln!("Error al enviar log al contenedor de logs: {}", e);
+        }
+    });
+}
+
+// Función principal que procesa los contenedores
+async fn process_containers(log_container_pid: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let path = "/proc/sysinfo_201901103";  // Ruta al archivo JSON
+    let containers_info = read_json_file(path)?;  // Lee el JSON
+
+    // Imprime la información de la RAM
+    println!(
+        "RAM Total: {} Kb, RAM Libre: {} Kb, RAM Uso: {} Kb",
+        containers_info.ram.total, containers_info.ram.libre, containers_info.ram.uso
+    );
+
+    identify_consumers(containers_info, log_container_pid);
     Ok(())
 }
-//********************************************************************************************************************************************
-//                                                                                                                 FUNCIONAMIENTO DEL MAIN
-// El main debe ser async para poder usar .await
+// Función para ejecutar el comando y obtener el ID y PID del contenedor
+fn obtener_pid_contenedor() -> Result<(String, String), io::Error> {
+    let status = Command::new("docker-compose")
+        .args(&["up", "--build", "-d"])
+        .current_dir("/home/pjd/Documentos/sopes/SO1_2S2024_201901103/Proyecto1/ContainerAdLogs")
+        .status()?;
+
+    if !status.success() {
+        return Err(io::Error::new(io::ErrorKind::Other, "Error al ejecutar docker-compose"));
+    }
+
+    // Obtiene el ID del contenedor
+    let output_id = Command::new("docker")
+        .arg("ps")
+        .arg("-q")
+        .current_dir("/home/pjd/Documentos/sopes/SO1_2S2024_201901103/Proyecto1/ContainerAdLogs")
+        .output()?;
+
+    if !output_id.status.success() {
+        return Err(io::Error::new(io::ErrorKind::Other, "Error al obtener el ID del contenedor"));
+    }
+
+    let container_id = String::from_utf8(output_id.stdout)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
+        .trim()
+        .to_string();
+
+    // Obtiene el PID del contenedor usando el ID
+    let output_pid = Command::new("docker")
+        .arg("inspect")
+        .arg("--format='{{.State.Pid}}'")
+        .arg(&container_id)
+        .output()?;
+
+    if !output_pid.status.success() {
+        return Err(io::Error::new(io::ErrorKind::Other, "Error al obtener el PID del contenedor"));
+    }
+
+    let container_pid = String::from_utf8(output_pid.stdout)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
+        .trim()
+        .replace("'", "")
+        .to_string();
+
+    Ok((container_id, container_pid))
+}
+
+// Función principal del programa
 #[tokio::main]
 async fn main() {
-    // Ejecutando docker-compose en una nueva terminal
     if let Err(e) = abrir_terminal() {
         println!("Error al abrir la terminal: {}", e);
     }
 
-    // Pausar la ejecución durante 8 segundos para permitir que la terminal y el comando se inicien
-    let wait_duration = Duration::from_secs(8); // Puedes ajustar este tiempo según sea necesario
-    thread::sleep(wait_duration);
-
-    // Obtener el ID del contenedor
-    let container_id = match obtener_id_contenedor() {
-        Ok(id) => id,
+    // Obtener ID y PID del contenedor
+    let (container_id, log_container_pid) = match obtener_pid_contenedor() {
+        Ok((id, pid)) => (id, pid),
         Err(e) => {
-            println!("Error al obtener el ID del contenedor: {}", e);
+            println!("Error al obtener el ID o PID del contenedor: {}", e);
             return;
         }
     };
 
     println!("ID del contenedor: {}", container_id);
+    println!("PID del contenedor de logs: {}", log_container_pid);
+    let pid_as_string = log_container_pid.to_string();
+    let wait_duration = Duration::from_secs(10);
+        thread::sleep(wait_duration);
+    //let log_container_pid = ""; // Debe ser el PID del contenedor de logs, necesitarás implementarlo
 
-    /*
-            De acá se debe agregar para que sea un ciclo de 10 segundos y se vuelva a repetir iniciando desde este punto
-    */
-    /*
-    // Leyendo el contenido de /proc/sysinfo_201901103
-    if let Err(e) = process_containers().await {
-        eprintln!("Error: {}", e);
-    }*/
+    //loop {
+        if let Err(e) = process_containers(&pid_as_string).await {
+            eprintln!("Error: {}", e);
+        }
 
-    // Verificando el endpoint /check/
-    if let Err(e) = verificar_endpoint().await {
-        println!("Error al verificar el endpoint: {}", e);
-    }
+        if let Err(e) = verificar_endpoint().await {
+            println!("Error al verificar el endpoint: {}", e);
+        }
+        println!("Antes del endpoint");
+        let wait_duration = Duration::from_secs(10);
+        thread::sleep(wait_duration);
 
-    /*
-     // Llamar a la función para detener el contenedor
-     if let Err(e) = detener_contenedor(&container_id) {
+    //}
+
+    if let Err(e) = detener_contenedor(&container_id) {
         println!("Error al detener el contenedor: {}", e);
-    }*/
-
-
+    }
 }

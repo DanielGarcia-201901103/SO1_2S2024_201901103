@@ -8,6 +8,9 @@ Para detener una ejecución del contenedor
 
 docker stop idContainer 
 
+Para obtener el pid del contenedor
+docker inspect -f '{.State.Pid}' 
+
 Ejemplo de la petición /logs/ para probar
 
 {
@@ -28,7 +31,7 @@ COMPILAR EL MODULO DE KERNEL ***************************************************
 cd ModuloKernel
 make
 sudo insmod sysinfo_201901103.ko
-
+sudo rmmod sysinfo_201901103
 
 
 #######################################################################################################################

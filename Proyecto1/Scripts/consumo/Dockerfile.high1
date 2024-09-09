@@ -3,4 +3,4 @@ FROM python:3.9-slim
 # Script de alto consumo: realizar una solicitud HTTP varias veces.
 RUN pip install requests
 
-CMD ["python3", "-c", "import requests; [requests.get('https://httpbin.org/get') for _ in range(100)]"]
+CMD ["python3", "-c", "import requests; [print('Alto consumo') requests.get('https://httpbin.org/get') for _ in range(100)]"]

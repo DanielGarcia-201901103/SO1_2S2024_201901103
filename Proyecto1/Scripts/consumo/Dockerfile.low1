@@ -1,4 +1,4 @@
 FROM python:3.9-slim
 
 # Script de bajo consumo: hacer un ciclo for ligero.
-CMD ["python3", "-c", "for i in range(1000000): pass"]
+CMD ["python3", "-c", "print('Bajo consumo 1') for i in range(1000000): pass"]

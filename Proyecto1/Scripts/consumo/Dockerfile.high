@@ -1,4 +1,4 @@
 FROM python:3.9-slim
 
 # Script de alto consumo: realizar cálculos intensivos.
-CMD ["python3", "-c", "import math; [math.factorial(100000) for _ in range(10)]"]
+CMD ["python3", "-c", "import math; [print('Alto consumo') math.factorial(100000) for _ in range(10)]"]
