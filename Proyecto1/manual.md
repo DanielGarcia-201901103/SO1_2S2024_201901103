@@ -6,7 +6,7 @@ Se observa en pantalla la ejecución del contenedor de logs (docker compose), ta
 ![Ejecución](images/cargorun1.png)
 
 Se abre en una nueva terminal el contenedor de docker compose, así podrá ver las peticiones realizadas, y podrá finalizar la ejecución del contenedor con Ctrl+C.
-![Ejecución](images/VentanaContenedor.png)
+![ventana](images/VentanaContenedor.png)
 
 Se ejecuta el script.sh.
 ![Script](images/Script.png)
@@ -14,14 +14,14 @@ Se ejecuta el script.sh.
 Se observa la creación de los contenedores.
 ![Script](images/Script1.png)
 
-Se muestra en pantalla la información del contenido json leído del archivo /proc/sysinfo_201901103
-![Script](images/Contenidojson.png)
+Se muestra en pantalla la información del contenido json leído del archivo /proc/sysinfo_201901103.
+![contenido](images/contenidojson.png)
 
 Se muestra en pantalla la información de la ram y los contenedores de alto y bajo consumo, los contenedores eliminados, y los logs que serán enviados al contenedor de logs.
-![Script](images/informacionContenedores.png)
+![logs](images/informacionContenedores.png)
 
 Se muestra un mensaje después de haber realizado todo, el programa finaliza la ejecución automaticamente del contenedor de logs.
-![Script](images/contenedorDetenido.png)
+![detencion](images/contenedorDetenido.png)
 
 # Instalación
 
@@ -57,4 +57,18 @@ Para mayor información visita el sitio oficial
 
 # Ejemplos
 
+Se muestra una impresión con el comando cat para la visualización de la estructura del json
 
+![cat](images/cat.png)
+
+Se muestra la estructura del dockfile de bajo consumo.
+
+![bajo](images/dockfilebajo.png)
+
+Se muestra la estructura del dockfile de alto consumo.
+
+![alto](images/dockefilealto.png)
+
+Se muestra la estructura del archivo json que crea los 10 contenedores de manera aleatoria.
+
+![Script](images/archivo.png)
