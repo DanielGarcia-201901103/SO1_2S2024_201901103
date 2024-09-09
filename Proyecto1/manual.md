@@ -2,7 +2,7 @@
 Se realiza la ejecución del programa desde terminal con el comando *cargo run*.
 ![Ejecución](images/cargorun.png)
 
-Se observa en pantalla la ejecución del contenedor de logs (docker compose).
+Se observa en pantalla la ejecución del contenedor de logs (docker compose), también se visualiza el id  y el pid.
 ![Ejecución](images/cargorun1.png)
 
 Se abre en una nueva terminal el contenedor de docker compose, así podrá ver las peticiones realizadas, y podrá finalizar la ejecución del contenedor con Ctrl+C.
