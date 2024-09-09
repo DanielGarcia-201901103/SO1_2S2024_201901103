@@ -244,7 +244,7 @@ fn identify_consumers(containers_info: ContainersInfo, log_container_pid: &str) 
 fn identify_consumers(containers_info: ContainersInfo, log_container_pid: &str) {
     let mut containers = containers_info.containers;
 
-    // Ordena los contenedores en base a cpu_usage, memoria_usage, vsz y rss
+    // Ordenar los contenedores por CPU, memoria, vsz y rss
     containers.sort_by(|a, b| {
         b.cpu_usage
             .partial_cmp(&a.cpu_usage)
@@ -254,43 +254,72 @@ fn identify_consumers(containers_info: ContainersInfo, log_container_pid: &str) 
             .then_with(|| b.rss.partial_cmp(&a.rss).unwrap_or(Ordering::Equal))
     });
 
-    // Comprobar si el vector tiene al menos 2 elementos antes de dividir
-    let mut high_consumers = if containers.len() > 2 {
+    // Información de la RAM
+    println!("--- Información de la RAM ---");
+    println!(
+        "RAM Total: {} Kb, RAM Libre: {} Kb, RAM Uso: {} Kb",
+        containers_info.ram.total, containers_info.ram.libre, containers_info.ram.uso
+    );
+    
+    // Verificar si hay al menos 2 contenedores de alto consumo
+    let high_consumers = if containers.len() > 2 {
         containers.split_off(containers.len() - 2)
     } else {
         Vec::new()
     };
 
-    // Comprobar si el vector tiene al menos 3 elementos antes de dividir
-    let mut low_consumers = if containers.len() > 3 {
+    // Verificar si hay al menos 3 contenedores de bajo consumo
+    let low_consumers = if containers.len() > 3 {
         containers.split_off(containers.len() - 3)
     } else {
         Vec::new()
     };
 
     let log_container_pid = log_container_pid.to_string();
-
     let mut containers_to_remove: Vec<String> = Vec::new();
 
-    // En la lista de alto consumo, eliminamos todos los contenedores excepto los 2 primeros
-    if high_consumers.len() > 2 {
-        for container in high_consumers.iter().skip(2) {
-            if container.pid != log_container_pid {
-                containers_to_remove.push(container.pid.clone());
-            }
+    // Imprimir los 2 contenedores de alto consumo
+    println!("--- Contenedores de alto consumo (Top 2) ---");
+    for container in &high_consumers {
+        println!(
+            "cmdline: {}, Nombre: {}, PID: {}, Vsz: {} Kb, Rss: {} Kb, CPU Usage: {:.2}%, RAM Usage: {:.2}%",
+            container.cmdline, container.nombre, container.pid, container.vsz, container.rss, container.cpu_usage * 100.0, container.memoria_usage * 100.0
+        );
+    }
+
+    // Imprimir los 3 contenedores de bajo consumo
+    println!("--- Contenedores de bajo consumo (Top 3) ---");
+    for container in &low_consumers {
+        println!(
+            "cmdline: {}, Nombre: {}, PID: {}, Vsz: {} Kb, Rss: {} Kb, CPU Usage: {:.2}%, RAM Usage: {:.2}%",
+            container.cmdline, container.nombre, container.pid, container.vsz, container.rss, container.cpu_usage * 100.0, container.memoria_usage * 100.0
+        );
+    }
+
+    // Determinar qué contenedores eliminar (evitar eliminar el contenedor de logs)
+    for container in high_consumers.iter().skip(2) {
+        if container.pid != log_container_pid {
+            containers_to_remove.push(container.pid.clone());
         }
     }
 
-    // En la lista de bajo consumo, eliminamos todos los contenedores excepto los 3 últimos
-    if low_consumers.len() > 3 {
-        for container in low_consumers.iter().take(low_consumers.len() - 3) {
-            if container.pid != log_container_pid {
-                containers_to_remove.push(container.pid.clone());
-            }
+    for container in low_consumers.iter().take(low_consumers.len().saturating_sub(3)) {
+        if container.pid != log_container_pid {
+            containers_to_remove.push(container.pid.clone());
         }
     }
 
-    // Ejecutar la eliminación en paralelo usando hilos
+    // Imprimir los contenedores eliminados
+    println!("--- Contenedores eliminados ---");
+    if containers_to_remove.is_empty() {
+        println!("No se eliminaron contenedores.");
+    } else {
+        for container_id in &containers_to_remove {
+            println!("Contenedor eliminado con PID: {}", container_id);
+        }
+    }
+
+    // Eliminar los contenedores
     let containers_to_remove = Arc::new(Mutex::new(containers_to_remove));
     let mut handles = vec![];
 
@@ -309,22 +338,8 @@ fn identify_consumers(containers_info: ContainersInfo, log_container_pid: &str) 
         handle.join().unwrap();
     }
 
-    // Imprimir la información de la RAM
-    println!(
-        "RAM Total: {} Kb, RAM Libre: {} Kb, RAM Uso: {} Kb",
-        containers_info.ram.total, containers_info.ram.libre, containers_info.ram.uso
-    );
-
-    // Imprimir los contenedores restantes
-    println!("Contenedores restantes:");
-    for container in containers {
-        println!(
-            "cmdline: {}, Nombre: {}, PID: {}, Vsz: {} Kb, Rss: {} Kb, CPU Usage: {:.2}%, RAM Usage: {:.2}%",
-            container.cmdline, container.nombre, container.pid, container.vsz, container.rss, container.cpu_usage * 100.0, container.memoria_usage * 100.0
-        );
-    }
-
     // Generar logs
+    println!("--- Logs ---");
     let log_time = Utc::now().to_rfc3339();
     let log_message = format!(
         "[{}] Información de la RAM: Total: {} Kb, Libre: {} Kb, Uso: {} Kb",
@@ -332,7 +347,7 @@ fn identify_consumers(containers_info: ContainersInfo, log_container_pid: &str) 
     );
     println!("{}", log_message);
 
-    // Enviar petición HTTP al contenedor de logs
+    // Enviar los logs al contenedor de logs
     let client = Client::new();
     let log_container_url = "http://0.0.0.0:8000"; // Dirección del contenedor administrador de logs
 
@@ -347,6 +362,7 @@ fn identify_consumers(containers_info: ContainersInfo, log_container_pid: &str) 
         }
     });
 }
+
 
 // Función principal que procesa los contenedores
 async fn process_containers(log_container_pid: &str) -> Result<(), Box<dyn std::error::Error>> {
