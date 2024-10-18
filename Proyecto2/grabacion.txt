@@ -1,0 +1,8 @@
+https://drive.google.com/drive/u/0/search?q=laboratorio%20sistemas%20operativos
+minuto 1:07:33
+
+
+
+https://kubernetes.io/es/docs/concepts/overview/kubernetes-api/
+
+https://kubernetes.io/es/docs/concepts/security/controlling-access/

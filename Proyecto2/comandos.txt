@@ -1,0 +1,18 @@
+PARA GOLANG EN AGRONOMIA
+
+go mod init myapi
+go run main.go
+
+
+PARA DOCKER EN AGRONOMÍA CON GOLANG
+
+docker build -t go-api:latest .
+docker run -p 8080:8080 go-api:latest
+
+
+PARA LOCUST
+pip install locust
+sudo apt install python3-locust
+
+           nombre del archivo python       y el host del backend
+locust -f locustfile.py --host http://localhost:8080
