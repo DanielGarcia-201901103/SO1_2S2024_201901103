@@ -9,6 +9,8 @@ PARA DOCKER EN AGRONOMÍA CON GOLANG
 docker build -t go-api:latest .
 docker run -p 8080:8080 go-api:latest
 
+docker stop $(docker ps -q)
+
 
 PARA LOCUST
 pip install locust
@@ -16,3 +18,21 @@ sudo apt install python3-locust
 
            nombre del archivo python       y el host del backend
 locust -f locustfile.py --host http://localhost:8080
+
+
+locust -f locustfile3.py
+locust -f locustfile3.py --host http://localhost
+
+
+---------------------------
+4/0AVG7fiT0hUDLj3xeFfMPLkFhCSHJsDpdrdfI-Vh7_907zsC2iEQHYDVWwgukLlZUgiioPQ
+
+arctic-plate-437703-v8
+
+
+docker build -t gcr.io/arctic-plate-437703-v8/go-api:latest .
+docker push gcr.io/arctic-plate-437703-v8/go-api:latest
+
+
+docker build -t gcr.io/hoja/go-api:latest .
+docker push gcr.io/hoja/go-api:latest

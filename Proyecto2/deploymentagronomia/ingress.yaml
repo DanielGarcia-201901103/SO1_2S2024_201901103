@@ -8,7 +8,7 @@ spec:
   rules:
   - http:
       paths:
-      - path: /submit
+      - path: /submitAgronomia
         pathType: Prefix
         backend:
           service:

@@ -1,0 +1,14 @@
+Ejecutando compilador de rust_api
+cargo build --release
+Iniciar el servidor
+cargo run
+
+
+Probar envío de una solicitud
+curl -X POST http://127.0.0.1:8081/submitIngenieria -H "Content-Type: application/json" -d '{"student":"John Doe","age":21,"faculty":"Agronomy","discipline":101}'
+
+
+Construir la imagen de docker
+docker build -t rust_api .
+Iniciar el contenedor
+docker run -p 8081:8081 rust_api

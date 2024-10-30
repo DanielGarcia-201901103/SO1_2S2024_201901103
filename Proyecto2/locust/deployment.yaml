@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: locust-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: locust-master
+  template:
+    metadata:
+      labels:
+        app: locust-master
+    spec:
+      containers:
+      - name: locust-master
+        image: gcr.io/[PROJECT_ID]/locust-load-tester:latest
+        args: ["--master"]
+        ports:
+        - containerPort: 8089  # Puerto para la interfaz web
+        - containerPort: 5557  # Puerto para coordinar los workers
+        - containerPort: 5558  # Puerto para coordinar los workers

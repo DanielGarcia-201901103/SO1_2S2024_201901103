@@ -5,9 +5,17 @@ class APIUser(HttpUser):
 
     @task
     def send_data(self):
+        # En discipline puede ser 1,2,3
         self.client.post("/submitAgronomia", json={
-            "student": "Alvaro Garcia",
+            "student": "María de los angeles",
             "age": 20,
-            "faculty": "Ingenieria",
+            "faculty": "Agronomía",
+            "discipline": 1
+        })
+
+        self.client.post("/submitIngenieria", json={
+            "student": "Juan perez",
+            "age": 20,
+            "faculty": "Ingeniería",
             "discipline": 1
         })

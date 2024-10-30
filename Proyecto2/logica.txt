@@ -1,0 +1,28 @@
+Objetivos:
+Utilizar google kubernetes engine (GKE)
+Manejo de herramienta locust
+Despligue de aplicaciones contenerizadas en GKE.
+
+
+Instrucciones:
+Crear un clúster de kubernetes en google kubernetes Engine (GKE).
+Utilizar Locust como una herramienta para enviar tráfico de información.
+Desplegar una Api en Go que reciba y muestre en pantalla la información obtenida.
+Tomar como ejemplo la siguiente estructura JSON:
+
+La estructura JSON que se debe de manejar para enviar como body en las peticiones HTTPS es la
+siguiente:
+o Faculty se divide en dos tipos “Ingeniería” y “Agronomía”
+o Discipline corresponde de la siguiente manera
+▪ 1 = Natación
+▪ 2 = Atletismo
+▪ 3 = Boxeo
+
+{
+ "student": "Alvaro Garcia",
+ "age": 20,
+ "faculty": "Ingenieria",
+ "discipline": 1
+}
+
+Además necesito la estructura de: Deployment.yaml, ingress.yaml, service.yaml
