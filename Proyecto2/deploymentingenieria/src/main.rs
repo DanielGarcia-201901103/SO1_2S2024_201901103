@@ -1,11 +1,19 @@
 use actix_web::{post, web, App, HttpResponse, HttpServer, Responder};
 use serde::Deserialize;
 use std::io::Result;
-use std::thread;
-use tonic::transport::Channel;
-use tokio::runtime::Runtime;
+use tokio::task;
+use tonic::Request;
 
-#[derive(Deserialize)]
+pub mod myapi {
+    pub mod paquete_proto {
+        tonic::include_proto!("student_service"); // Cambia esto si es necesario
+    }
+}
+
+use myapi::paquete_proto::student_service_client::StudentServiceClient;
+use myapi::paquete_proto::StudentRequest;
+
+#[derive(Deserialize, Clone)]
 struct RequestBody {
     student: String,
     age: i32,
@@ -13,24 +21,21 @@ struct RequestBody {
     discipline: i32,
 }
 
-mod student_service {
-    tonic::include_proto!("student_service"); // Ajusta el nombre de paquete según tu archivo .proto
-}
+async fn send_to_server(body: RequestBody, address: String) {
+    let mut client = StudentServiceClient::connect(address)
+        .await
+        .expect("Failed to connect to gRPC server");
 
-async fn send_to_server(body: RequestBody, address: &'static str) {
-    let channel = Channel::from_shared(address.to_string()).unwrap().connect().await.unwrap();
-    let mut client = student_service::student_service_client::StudentServiceClient::new(channel);
-
-    let request = tonic::Request::new(student_service::StudentRequest {
+    let req = StudentRequest {
         student: body.student,
         age: body.age,
         faculty: body.faculty,
         discipline: body.discipline,
-    });
+    };
 
-    match client.send_student(request).await {
-        Ok(_) => println!("Student sent successfully"),
-        Err(e) => eprintln!("Failed to send student: {:?}", e),
+    match client.send_student(Request::new(req)).await {
+        Ok(resp) => println!("Response from server: {:?}", resp.into_inner()),
+        Err(err) => eprintln!("Error sending student: {:?}", err),
     }
 }
 
@@ -43,23 +48,21 @@ async fn submit_agronomia(body: web::Json<RequestBody>) -> impl Responder {
 
     // Determinar el servidor gRPC según la disciplina
     let address = match body.discipline {
-        1 => "http://localhost:8082", // Natación
-        2 => "http://localhost:8083", // Atletismo
-        3 => "http://localhost:8084", // Boxeo
+        1 => "http://localhost:8082".to_string(), // Natación
+        2 => "http://localhost:8083".to_string(), // Atletismo
+        3 => "http://localhost:8084".to_string(), // Boxeo
         _ => return HttpResponse::BadRequest().body("Invalid discipline"),
     };
 
-    let body_clone = body.into_inner();
-
-    // Lanzar un thread para enviar la solicitud gRPC
-    thread::spawn(move || {
-        let rt = Runtime::new().unwrap();
-        rt.block_on(send_to_server(body_clone, address));
+    // Enviar al servidor correspondiente utilizando un thread
+    let body_clone = body.clone();
+    task::spawn(async move {
+        send_to_server(body_clone, address).await;
     });
 
     let response = format!(
         "Received student: {}, age: {}, faculty: {}, discipline: {}",
-        body_clone.student, body_clone.age, body_clone.faculty, body_clone.discipline
+        body.student, body.age, body.faculty, body.discipline
     );
 
     HttpResponse::Ok().body(response)
@@ -68,8 +71,11 @@ async fn submit_agronomia(body: web::Json<RequestBody>) -> impl Responder {
 #[actix_web::main]
 async fn main() -> Result<()> {
     println!("Server running on port 8081");
-    HttpServer::new(|| App::new().service(submit_agronomia))
-        .bind("0.0.0.0:8081")?
-        .run()
-        .await
+    HttpServer::new(|| {
+        App::new()
+            .service(submit_agronomia)
+    })
+    .bind("0.0.0.0:8081")?
+    .run()
+    .await
 }

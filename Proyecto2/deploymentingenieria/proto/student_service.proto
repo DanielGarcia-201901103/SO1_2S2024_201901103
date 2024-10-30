@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package student_service;
 
-option go_package = "./paqueteProto";
-
 service StudentService {
     rpc SendStudent(StudentRequest) returns (StudentResponse);
 }

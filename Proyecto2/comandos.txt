@@ -53,3 +53,7 @@ PARA gRPC
 
 sudo apt update
 sudo apt install protobuf-compiler
+
+
+
+go get google.golang.org/grpc

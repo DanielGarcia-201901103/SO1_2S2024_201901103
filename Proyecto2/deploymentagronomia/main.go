@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	pb "path/to/your/proto/package" // Ajusta la ruta según tu caso
+	pb "myapi/paqueteProto" // Importa el paquete generado
 
 	"google.golang.org/grpc"
 )
@@ -28,7 +28,7 @@ func sendToServer(body RequestBody, address string) {
 	}
 	defer conn.Close()
 
-	client := pb.StudentServiceClient(conn)
+	client := pb.NewStudentServiceClient(conn) // Cambia a NewStudentServiceClient
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 

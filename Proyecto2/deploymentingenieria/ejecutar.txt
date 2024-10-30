@@ -12,3 +12,157 @@ Construir la imagen de docker
 docker build -t rust_api .
 Iniciar el contenedor
 docker run -p 8081:8081 rust_api
+
+
+
+
+
+
+
+
+
+*****************************************************************************
+Lo que funcionaba antes de meter gRPC
+
+
+use actix_web::{post, web, App, HttpResponse, HttpServer, Responder};
+use serde::Deserialize;
+use std::io::Result;
+
+#[derive(Deserialize)]
+struct RequestBody {
+    student: String,
+    age: i32,
+    faculty: String,
+    discipline: i32,
+}
+
+
+
+#[post("/submitIngenieria")]
+async fn submit_agronomia(body: web::Json<RequestBody>) -> impl Responder {
+    println!(
+        "Student: {}, Age: {}, Faculty: {}, Discipline: {}",
+        body.student, body.age, body.faculty, body.discipline
+    );
+    
+    
+    // Determinar el servidor gRPC según la disciplina
+    let address = match body.discipline {
+        1 => "http://localhost:8082", // Natación
+        2 => "http://localhost:8083", // Atletismo
+        3 => "http://localhost:8084", // Boxeo
+        _ => return HttpResponse::BadRequest().body("Invalid discipline"),
+    };
+
+
+    let response = format!(
+        "Received student: {}, age: {}, faculty: {}, discipline: {}",
+        body.student, body.age, body.faculty, body.discipline
+    );
+
+    HttpResponse::Ok().body(response)
+}
+
+#[actix_web::main]
+async fn main() -> Result<()> {
+    println!("Server running on port 8081");
+    HttpServer::new(|| {
+        App::new()
+            .service(submit_agronomia)
+    })
+    .bind("0.0.0.0:8081")?
+    .run()
+    .await
+}
+
+
+
+
+
+
+*********************************************************
+Versión con gRPC que tiene menos errores
+
+
+use actix_web::{post, web, App, HttpResponse, HttpServer, Responder};
+use serde::Deserialize;
+use std::io::Result;
+use tokio::task;
+use tonic::Request;
+
+pub mod myapi {
+    pub mod paquete_proto {
+        tonic::include_proto!("student_service"); // Cambia esto si es necesario
+    }
+}
+
+use myapi::paquete_proto::student_service_client::StudentServiceClient;
+use myapi::paquete_proto::{StudentRequest, StudentResponse};
+
+#[derive(Deserialize, Clone)]
+struct RequestBody {
+    student: String,
+    age: i32,
+    faculty: String,
+    discipline: i32,
+}
+
+async fn send_to_server(body: RequestBody, address: &str) {
+    let mut client = StudentServiceClient::connect(address)
+        .await
+        .expect("Failed to connect to gRPC server");
+
+    let req = StudentRequest {
+        student: body.student,
+        age: body.age,
+        faculty: body.faculty,
+        discipline: body.discipline,
+    };
+
+    match client.send_student(Request::new(req)).await {
+        Ok(resp) => println!("Response from server: {:?}", resp.into_inner()),
+        Err(err) => eprintln!("Error sending student: {:?}", err),
+    }
+}
+
+#[post("/submitIngenieria")]
+async fn submit_agronomia(body: web::Json<RequestBody>) -> impl Responder {
+    println!(
+        "Student: {}, Age: {}, Faculty: {}, Discipline: {}",
+        body.student, body.age, body.faculty, body.discipline
+    );
+
+    // Determinar el servidor gRPC según la disciplina
+    let address = match body.discipline {
+        1 => "http://localhost:8082", // Natación
+        2 => "http://localhost:8083", // Atletismo
+        3 => "http://localhost:8084", // Boxeo
+        _ => return HttpResponse::BadRequest().body("Invalid discipline"),
+    };
+
+    // Enviar al servidor correspondiente utilizando un thread
+    let body_clone = body.clone();
+    task::spawn(async move {
+        send_to_server(body_clone, address).await;
+    });
+
+    let response = format!(
+        "Received student: {}, age: {}, faculty: {}, discipline: {}",
+        body.student, body.age, body.faculty, body.discipline
+    );
+
+    HttpResponse::Ok().body(response)
+}
+
+#[actix_web::main]
+async fn main() -> Result<()> {
+    println!("Server running on port 8081");
+    HttpServer::new(|| {
+        App::new()
+            .service(submit_agronomia)
+    })
+    .bind("0.0.0.0:8081")?
+    .run()
+    .await
+}
