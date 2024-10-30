@@ -1,0 +1,8 @@
+go mod init myservers
+
+go run atletismo.go
+go get google.golang.org/grpc
+
+
+
+protoc --go_out=. --go-grpc_out=. student_service.proto
