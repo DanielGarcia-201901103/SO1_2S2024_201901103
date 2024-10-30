@@ -1,8 +1,17 @@
+atletismo
 go mod init myservers
-
-go run atletismo.go
 go get google.golang.org/grpc
-
-
-
 protoc --go_out=. --go-grpc_out=. student_service.proto
+go run atletismo.go
+
+boxeo
+go mod init myservers1
+go get google.golang.org/grpc
+protoc --go_out=. --go-grpc_out=. student_service.proto
+go run boxeo.go
+
+natacion
+go mod init myservers2
+go get google.golang.org/grpc
+protoc --go_out=. --go-grpc_out=. student_service.proto
+go run natacion.go

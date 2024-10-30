@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package student_service;
+
+option go_package = "./paqueteProto";
+
+service StudentService {
+    rpc SendStudent(StudentRequest) returns (StudentResponse);
+}
+
+message StudentRequest {
+    string student = 1;
+    int32 age = 2;
+    string faculty = 3;
+    int32 discipline = 4;
+}
+
+message StudentResponse {
+    string status = 1;
+}
