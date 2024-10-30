@@ -36,3 +36,20 @@ docker push gcr.io/arctic-plate-437703-v8/go-api:latest
 
 docker build -t gcr.io/hoja/go-api:latest .
 docker push gcr.io/hoja/go-api:latest
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA gRPC
+
+sudo apt update
+sudo apt install protobuf-compiler

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package student_service;
+
+option go_package = "https://github.com/DanielGarcia-201901103/SO1_2S2024_201901103/tree/main/Proyecto2/deploymentagronomia/student_service";
+
+service StudentService {
+    rpc SendStudent(StudentRequest) returns (StudentResponse);
+}
+
+message StudentRequest {
+    string student = 1;
+    int32 age = 2;
+    string faculty = 3;
+    int32 discipline = 4;
+}
+
+message StudentResponse {
+    string status = 1;
+}
