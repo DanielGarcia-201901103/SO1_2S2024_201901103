@@ -5,16 +5,28 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/segmentio/kafka-go"
 )
 
 const (
 	kafkaBroker = "localhost:9092"
 	topic       = "winners"
+	redisAddr   = "localhost:6379"
 )
 
+var ctx = context.Background()
+
 func main() {
+	// Configurar conexión a Redis
+	rdb := redis.NewClient(&redis.Options{
+		Addr: redisAddr,
+	})
+
+	defer rdb.Close()
+	// Configurar conexión a Kafka
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: []string{kafkaBroker},
 		Topic:   topic,
@@ -40,5 +52,13 @@ func main() {
 
 		// Imprimir la información recibida
 		fmt.Printf("Ganador recibido de Kafka: %v\n", studentInfo)
+
+		// Almacenar en Redis usando hashes
+		faculty := studentInfo["faculty"].(string)
+		discipline := strconv.Itoa(int(studentInfo["discipline"].(float64)))
+
+		// Guardar el conteo de alumnos por facultad y disciplina en Redis
+		rdb.HIncrBy(ctx, "winners_by_faculty", faculty, 1)
+		rdb.HIncrBy(ctx, "winners_by_discipline", discipline, 1)
 	}
 }

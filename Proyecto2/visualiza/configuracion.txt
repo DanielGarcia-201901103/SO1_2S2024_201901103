@@ -1,0 +1,45 @@
+Este código guarda la cuenta de ganadores:
+
+Por facultad (winners_by_faculty), usando el nombre de la facultad.
+Por disciplina (winners_by_discipline), usando el ID de la disciplina.
+Paso 3: Configurar Grafana para Conexión a Redis
+Para mostrar los datos en Grafana, debes:
+
+Instalar el plugin de Redis en Grafana.
+Configurar un Dashboard que lea los datos de Redis.
+Configuración del Plugin de Redis en Grafana
+Acceder a Grafana: Abre http://localhost:3000 y usa las credenciales admin para usuario y contraseña.
+
+Instalar Plugin Redis:
+
+Ve a Configuration > Plugins.
+Busca el plugin Redis Data Source e instálalo.
+Agregar Redis como Fuente de Datos:
+
+Ve a Configuration > Data Sources y selecciona Add data source.
+Escoge Redis e ingresa la dirección del servidor Redis (por ejemplo, redis:6379).
+Guarda y prueba la conexión.
+Configuración de Dashboards en Grafana
+Crear un Dashboard para visualizar la información de Redis.
+
+a. Conteo de alumnos por facultad: Utiliza winners_by_faculty para mostrar el conteo.
+b. Conteo de disciplinas de ganadores: Utiliza winners_by_discipline para mostrar el conteo.
+c. Conteo de alumnos por facultad que perdieron (en consumer2.go, se haría de forma similar a consumer1.go usando el tópico "losers").
+Resumen
+Con estos pasos, tus datos leídos de Kafka serán almacenados en Redis y Grafana podrá acceder a ellos para visualizarlos en tiempo real.
+
+
+
+
+
+
+
+Paso Adicional: Configuración de Red
+Para que Grafana pueda conectarse a Redis en la misma red, primero debes crear la red compartida antes de iniciar los contenedores.
+
+Ejecuta el siguiente comando para crear la red:
+docker network create redis-grafana-network
+
+Luego, inicia ambos archivos de Docker Compose por separado:
+docker-compose -f docker-compose-redis.yml up -d
+docker-compose -f docker-compose-grafana.yml up -d

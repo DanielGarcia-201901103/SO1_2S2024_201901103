@@ -1,11 +1,13 @@
 Consumer1
 go mod init myconsumer1
 go get github.com/segmentio/kafka-go
+go get github.com/go-redis/redis/v8
 
 go run consumer1.go
 
 Consumer2
 go mod init myconsumer2
 go get github.com/segmentio/kafka-go
+go get github.com/go-redis/redis/v8
 
 go run consumer2.go

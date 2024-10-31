@@ -6,3 +6,48 @@ docker-compose ps
 
 
 docker-compose stop
+
+
+
+
+
+
+1. Configuración de Retención de Kafka
+Kafka tiene configuraciones de retención automáticas basadas en dos factores principales:
+
+Tiempo de retención: log.retention.hours (por defecto, 168 horas o 7 días). Kafka elimina mensajes que superan esta antigüedad.
+Tamaño del log: log.retention.bytes (sin límite por defecto). Kafka elimina mensajes si el tamaño de los logs supera este límite.
+Estos valores pueden configurarse a nivel de clúster o de tópico individualmente. Por ejemplo:
+
+# Configurar tiempo de retención de un tópico
+kafka-topics.sh --zookeeper localhost:2181 --alter --topic nombre-topico --config retention.ms=86400000  # 1 día en milisegundos
+
+
+2. Eliminar los Datos Manualmente al Reiniciar Kafka
+Para eliminar datos al detener y reiniciar los contenedores, puedes configurar los volúmenes de Docker para que no guarden los datos de Kafka. En el archivo docker-compose.yml, agrega volúmenes temporales en lugar de persistentes. Esto elimina los datos cuando los contenedores se detienen.
+services:
+  kafka:
+    volumes:
+      - /tmp/kafka-data:/bitnami/kafka  # Directorio temporal
+  zookeeper:
+    volumes:
+      - /tmp/zookeeper-data:/bitnami/zookeeper
+
+Al detener y eliminar los contenedores (docker-compose down -v), los datos en estos volúmenes temporales se eliminarán.
+
+
+
+3. Limpiar los Datos de Kafka Manualmente sin Modificar Volúmenes
+Para eliminar mensajes de un tópico sin reiniciar los contenedores, puedes usar el siguiente comando para eliminar y recrear un tópico:
+
+# Borrar un tópico específico
+kafka-topics.sh --zookeeper localhost:2181 --delete --topic nombre-topico
+
+# Re-crear el tópico
+kafka-topics.sh --zookeeper localhost:2181 --create --topic nombre-topico --partitions 1 --replication-factor 1
+
+
+4. Usar el Comando docker-compose down -v
+Si prefieres eliminar todos los datos al detener Kafka, ejecuta:
+docker-compose down -v
+Esto elimina los volúmenes y, con ello, los datos asociados de Kafka y Zookeeper.
