@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"math/rand"
 	"net"
@@ -9,11 +10,13 @@ import (
 
 	pb "myservers/paqueteProto"
 
+	"github.com/segmentio/kafka-go"
 	"google.golang.org/grpc"
 )
 
 const (
-	port = ":8083"
+	port        = ":8083"
+	kafkaBroker = "localhost:9092"
 )
 
 type server struct {
@@ -22,14 +25,40 @@ type server struct {
 
 func (s *server) SendStudent(ctx context.Context, req *pb.StudentRequest) (*pb.StudentResponse, error) {
 	isWinner := determineWinner()
-	status := "Winner"
+	topic := "winners"
+	if !isWinner {
+		topic = "losers"
+	}
+
+	// Imprimir información recibida en lugar de enviar a Kafka
+	//log.Printf("Received student: %s, Age: %d, Faculty: %s, Discipline: %d", req.Student, req.Age, req.Faculty, req.Discipline)
+	//log.Printf("Determined status: %s", status)
+
+	// Preparar el mensaje a enviar a Kafka
+	studentInfo := map[string]interface{}{
+		"student":    req.Student,
+		"age":        req.Age,
+		"faculty":    req.Faculty,
+		"discipline": req.Discipline,
+	}
+	message, err := json.Marshal(studentInfo)
+	if err != nil {
+		log.Printf("Error al codificar el mensaje: %v", err)
+		return &pb.StudentResponse{Status: "Encoding Error"}, err
+	}
+
+	// Enviar el mensaje a Kafka
+	err = writeToKafka(topic, message)
+	if err != nil {
+		return &pb.StudentResponse{Status: "Kafka Error"}, err
+	}
+
+	status := "winners"
 	if !isWinner {
 		status = "Not a Winner"
 	}
 
-	// Imprimir información recibida en lugar de enviar a Kafka
-	log.Printf("Received student: %s, Age: %d, Faculty: %s, Discipline: %d", req.Student, req.Age, req.Faculty, req.Discipline)
-	log.Printf("Determined status: %s", status)
+	log.Printf("Sent to Kafka - Student: %s, Age: %d, Faculty: %s, Discipline: %d, Status: %s", req.Student, req.Age, req.Faculty, req.Discipline, status)
 
 	// Devolver la respuesta con el estado
 	return &pb.StudentResponse{Status: status}, nil
@@ -39,6 +68,21 @@ func (s *server) SendStudent(ctx context.Context, req *pb.StudentRequest) (*pb.S
 func determineWinner() bool {
 	rand.Seed(time.Now().UnixNano())
 	return rand.Intn(2) == 0
+}
+
+func writeToKafka(topic string, message []byte) error {
+	writer := kafka.Writer{
+		Addr:     kafka.TCP(kafkaBroker),
+		Topic:    topic,
+		Balancer: &kafka.LeastBytes{},
+	}
+	defer writer.Close()
+
+	err := writer.WriteMessages(context.Background(), kafka.Message{Value: message})
+	if err != nil {
+		log.Printf("Error al enviar a Kafka: %v", err)
+	}
+	return err
 }
 
 func main() {

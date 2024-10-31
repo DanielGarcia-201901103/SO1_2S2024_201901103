@@ -29,7 +29,7 @@ func sendToServer(body RequestBody, address string) {
 	defer conn.Close()
 
 	client := pb.NewStudentServiceClient(conn) // Cambia a NewStudentServiceClient
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	req := &pb.StudentRequest{

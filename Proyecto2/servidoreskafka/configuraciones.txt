@@ -1,0 +1,8 @@
+Ejecuta el siguiente comando en la misma carpeta donde creaste el archivo docker-compose.yml:
+docker-compose up -d
+
+Puedes verificar que ambos contenedores están en funcionamiento usando:
+docker-compose ps
+
+
+docker-compose stop
