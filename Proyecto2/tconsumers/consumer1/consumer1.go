@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	kafkaBroker = "localhost:9092"
+	kafkaBroker = "kafka-service.kafka:9092"
 	topic       = "winners"
-	redisAddr   = "localhost:6379"
+	redisAddr   = "redis-service:6379"
 )
 
 var ctx = context.Background()

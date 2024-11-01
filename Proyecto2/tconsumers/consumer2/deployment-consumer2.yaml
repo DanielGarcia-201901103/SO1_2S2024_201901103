@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumer2
+  labels: 
+    app: consumer2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consumer2
+  template:
+    metadata:
+      labels:
+        app: consumer2
+    spec:
+      containers:
+      - name: consumer2
+        image: gcr.io/[YOUR_PROJECT_ID]/consumer2:v1
+        env:
+        - name: KAFKA_BROKER
+          value: "kafka-service:9092"  # Dirección de Kafka en Kubernetes
+        - name: REDIS_ADDR
+          value: "redis-service:6379"  # Dirección de Redis en Kubernetes

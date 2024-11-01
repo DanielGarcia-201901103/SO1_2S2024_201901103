@@ -1,0 +1,28 @@
+4. Despliegue de Prometheus y Configuración de Dashboards
+Prometheus recopilará métricas del clúster y de las aplicaciones para monitorear el rendimiento y recursos.
+
+Instalación de Prometheus con Helm
+Instalaremos Prometheus usando Helm y configuraremos Grafana para que lo consuma como fuente de datos.
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install prometheus prometheus-community/prometheus --namespace monitoring
+
+Configuración de Dashboards de Prometheus en Grafana
+Grafana se puede configurar para mostrar métricas clave de Prometheus. Puedes utilizar templates de la comunidad en Grafana para visualizar:
+
+Resumen del Clúster:
+
+Visualiza nodos, pods, conectores y servicios activos en el clúster.
+Rendimiento de las Aplicaciones:
+
+Muestra las peticiones HTTP y la latencia de respuesta.
+Recursos del Sistema:
+
+Monitorea el uso de CPU, memoria y disco.
+Busca los dashboards en el sitio de Grafana y usa las IDs correspondientes para importar los dashboards en Grafana.
+
+5. Comprobación Final y Configuraciones Adicionales
+Conexiones a Redis y Kafka: Verifica que las variables de entorno para Kafka y Redis estén configuradas correctamente en los consumidores y que los servicios estén expuestos en las direcciones correctas.
+Acceso a Grafana y Prometheus: Asegúrate de exponer Grafana y Prometheus mediante un Service de tipo LoadBalancer o NodePort si deseas acceder a ellos fuera del clúster.
+Una vez que todos los deployments estén aplicados y las conexiones estén establecidas, los consumidores deberían comenzar a procesar los datos desde Kafka, almacenarlos en Redis, y Grafana podrá visualizarlos junto con las métricas de Prometheus.

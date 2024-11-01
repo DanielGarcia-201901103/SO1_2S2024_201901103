@@ -1,0 +1,18 @@
+3. Despliegue de Grafana y Configuración de Dashboards
+Grafana se utilizará para mostrar los datos almacenados en Redis y las métricas de Prometheus.
+
+Instalación de Grafana con Helm
+Usaremos Helm para simplificar el despliegue de Grafana en Kubernetes.
+
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+helm install grafana grafana/grafana --namespace monitoring --create-namespace \
+  --set adminUser=admin,adminPassword=admin \
+  --set service.type=ClusterIP
+
+
+Configuración de Dashboards
+Dashboard de Conteo de Alumnos por Facultad (Redis)
+Dashboard de Conteo de Disciplinas de Ganadores (Redis)
+Dashboard de Conteo de Alumnos Perdidos por Facultad (Redis)
+Para acceder a los datos de Redis en Grafana, instala el plugin Redis Data Source.

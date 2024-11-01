@@ -62,7 +62,7 @@ go get google.golang.org/grpc
 
 
 
-
+https://github.com/AlvaroG13191704/SO1_S2_2024/blob/main/contenido/unidad_2/ejemplos/kubernetes/goserver.yaml
 
 
 

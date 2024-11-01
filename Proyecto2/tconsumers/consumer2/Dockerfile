@@ -5,11 +5,12 @@ FROM golang:1.22-alpine AS builder
 WORKDIR /app
 
 # Copia el archivo go.mod y go.sum
-COPY . .
+COPY go.mod go.sum ./
 
 # Descarga las dependencias
 RUN go mod download
 
+COPY . .
 # Compila la aplicación
 RUN CGO_ENABLED=0 GOOS=linux go build -o consumer2 .
 

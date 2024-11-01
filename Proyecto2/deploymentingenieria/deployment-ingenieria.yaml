@@ -24,16 +24,3 @@ spec:
           limits:
             cpu: "200m"
             memory: "256Mi"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ingenieria-service
-spec:
-  selector:
-    app: ingenieria
-  ports:
-  - protocol: TCP
-    port: 8081
-    targetPort: 8081
-  type: ClusterIP
