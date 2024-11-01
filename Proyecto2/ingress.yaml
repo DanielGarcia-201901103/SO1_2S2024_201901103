@@ -2,23 +2,26 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: olympiadas-ingress
-  annotations:
-    kubernetes.io/ingress.class: "gce"
+  namespace: default  # Cambia esto si tus servicios están en otro namespace
+  labels:
+    name: olympiadas-ingress
 spec:
+  ingressClassName: nginx
   rules:
-  - http:
-      paths:
-      - path: /submitAgronomia
-        pathType: Prefix
-        backend:
-          service:
-            name: agronomia-service
-            port:
-              number: 8080
-      - path: /submitIngenieria
-        pathType: Prefix
-        backend:
-          service:
-            name: ingenieria-service
-            port:
-              number: 8081
+    - host: 34.72.220.149 # Cambia esto por el nombre de host que desees
+      http:
+        paths:
+          - path: /submitAgronomia
+            pathType: Prefix
+            backend:
+              service:
+                name: agronomia-service
+                port:
+                  number: 8080
+          - path: /submitIngenieria
+            pathType: Prefix
+            backend:
+              service:
+                name: ingenieria-service
+                port:
+                  number: 8081

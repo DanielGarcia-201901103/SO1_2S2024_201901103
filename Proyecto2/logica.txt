@@ -1,28 +1,42 @@
-Objetivos:
-Utilizar google kubernetes engine (GKE)
-Manejo de herramienta locust
-Despligue de aplicaciones contenerizadas en GKE.
+docker login -u jdanielprogram
+
+docker build -t jdanielprogram/go-api:latest .
+docker push jdanielprogram/go-api:latest
+
+kubectl apply -f deployment-agronomia.yaml
+kubectl apply -f service-agronomia.yaml
+kubectl apply -f hpa-agronomia.yaml
+
+kubectl get pods
+kubectl get service
+******************************************************************************
+docker build -t jdanielprogram/rust_api .
+docker push jdanielprogram/rust_api
+
+kubectl apply -f deployment-ingenieria.yaml
+kubectl apply -f service-ingenieria.yaml
+kubectl apply -f hpa-ingenieria.yaml
 
 
-Instrucciones:
-Crear un clúster de kubernetes en google kubernetes Engine (GKE).
-Utilizar Locust como una herramienta para enviar tráfico de información.
-Desplegar una Api en Go que reciba y muestre en pantalla la información obtenida.
-Tomar como ejemplo la siguiente estructura JSON:
+Para verificar cambios
+kubectl get svc
 
-La estructura JSON que se debe de manejar para enviar como body en las peticiones HTTPS es la
-siguiente:
-o Faculty se divide en dos tipos “Ingeniería” y “Agronomía”
-o Discipline corresponde de la siguiente manera
-▪ 1 = Natación
-▪ 2 = Atletismo
-▪ 3 = Boxeo
+*******************************************************
+Para ver la ip del ingress
+kubectl delete ingress olympiadas-ingress
 
-{
- "student": "Alvaro Garcia",
- "age": 20,
- "faculty": "Ingenieria",
- "discipline": 1
-}
+kubectl get ingress olympiadas-ingress
+kubectl get ingress
+locust -f locustfile3.py --host http://34.72.220.149.nip.io
 
-Además necesito la estructura de: Deployment.yaml, ingress.yaml, service.yaml
+http://34.72.220.149.nip.io/submitAgronomia
+http://34.72.220.149.nip.io/submitIngenieria
+
+kubectl get ingressclasses
+kubectl apply -f ingress-class.yaml
+
+kubectl get services -n default
+kubectl get endpoints -n default
+kubectl get pods -n default
+
+kubectl get ingressclasses
