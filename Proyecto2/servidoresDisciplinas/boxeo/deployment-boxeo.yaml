@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: boxeo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: boxeo
+  template:
+    metadata:
+      labels:
+        app: boxeo
+    spec:
+      containers:
+      - name: boxeo
+        image: gcr.io/[YOUR_PROJECT_ID]/boxeo:v1
+        ports:
+        - containerPort: 8084
+        env:
+        - name: KAFKA_BROKER
+          value: "kafka-service:9092"  # Dirección de Kafka en Kubernetes
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: boxeo-service
+spec:
+  selector:
+    app: boxeo
+  ports:
+  - protocol: TCP
+    port: 8084
+    targetPort: 8084
+  type: ClusterIP

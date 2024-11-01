@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: go-api-deployment
+  name: go-api
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: go-api

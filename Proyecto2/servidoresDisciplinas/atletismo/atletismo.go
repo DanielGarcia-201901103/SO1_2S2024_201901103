@@ -16,7 +16,7 @@ import (
 
 const (
 	port        = ":8083"
-	kafkaBroker = "localhost:9092"
+	kafkaBroker = "kafka-service.kafka:9092"
 )
 
 type server struct {

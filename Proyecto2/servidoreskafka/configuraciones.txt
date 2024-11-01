@@ -51,3 +51,35 @@ kafka-topics.sh --zookeeper localhost:2181 --create --topic nombre-topico --part
 Si prefieres eliminar todos los datos al detener Kafka, ejecuta:
 docker-compose down -v
 Esto elimina los volúmenes y, con ello, los datos asociados de Kafka y Zookeeper.
+
+
+
+
+
+
+
+
+
+
+
+
+******************************************************************************************************************************************************
+3. Despliegue de Kafka en Kubernetes usando Strimzi
+Para desplegar Kafka en Kubernetes, se recomienda utilizar Strimzi, una solución especializada en el despliegue y gestión de Kafka en Kubernetes.
+
+1. Instala Strimzi:
+
+kubectl create namespace kafka
+kubectl apply -f 'https://strimzi.io/install/latest?namespace=kafka' -n kafka
+
+2. Crea un clúster de Kafka usando Strimzi:
+kafka-cluster.yaml:
+
+Aplica este archivo:
+kubectl apply -f kafka-cluster.yaml -n kafka
+
+3.Crea un Service de tipo ClusterIP para Kafka:
+kafka-service.yaml:
+
+Aplica este archivo:
+kubectl apply -f kafka-service.yaml -n kafka

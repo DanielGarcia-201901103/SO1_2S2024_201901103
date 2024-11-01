@@ -48,9 +48,9 @@ async fn submit_agronomia(body: web::Json<RequestBody>) -> impl Responder {
 
     // Determinar el servidor gRPC según la disciplina
     let address = match body.discipline {
-        1 => "http://localhost:8082".to_string(), // Natación
-        2 => "http://localhost:8083".to_string(), // Atletismo
-        3 => "http://localhost:8084".to_string(), // Boxeo
+        1 => "http://natacion-service:8082".to_string(), // Natación
+        2 => "http://atletismo-service:8083".to_string(), // Atletismo
+        3 => "http://boxeo-service:8084".to_string(), // Boxeo
         _ => return HttpResponse::BadRequest().body("Invalid discipline"),
     };
 

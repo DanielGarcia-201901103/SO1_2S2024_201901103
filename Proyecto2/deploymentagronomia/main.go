@@ -63,11 +63,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	var address string
 	switch body.Discipline {
 	case 1:
-		address = "localhost:8082" // Natación
+		address = "natacion-service:8082" // Natación
 	case 2:
-		address = "localhost:8083" // Atletismo
+		address = "atletismo-service:8083" // Atletismo
 	case 3:
-		address = "localhost:8084" // Boxeo
+		address = "boxeo-service:8084" // Boxeo
 	default:
 		http.Error(w, "Invalid discipline", http.StatusBadRequest)
 		return

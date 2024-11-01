@@ -57,3 +57,49 @@ sudo apt install protobuf-compiler
 
 
 go get google.golang.org/grpc
+
+
+
+
+
+
+
+
+
+
+
+
+***********************************************KUBERNETES EN GCP******************************************
+
+Paso 6: Despliegue en Kubernetes
+Aplica los archivos YAML a tu clúster de Kubernetes.
+
+kubectl apply -f deployment-agronomia.yaml
+kubectl apply -f deployment-ingenieria.yaml
+kubectl apply -f ingress.yaml
+kubectl apply -f hpa-agronomia.yaml
+kubectl apply -f hpa-ingenieria.yaml
+
+
+
+
+
+
+
+
+
+
+
+
+5. Despliegue Completo de la Arquitectura
+1.Aplica los archivos de configuración de deployments y servicios:
+kubectl apply -f deployment-atletismo.yaml
+kubectl apply -f deployment-boxeo.yaml
+kubectl apply -f deployment-natacion.yaml
+kubectl apply -f kafka-cluster.yaml -n kafka
+kubectl apply -f kafka-service.yaml -n kafka
+
+2.Aplica los Horizontal Pod Autoscalers:
+kubectl apply -f hpa-atletismo.yaml
+kubectl apply -f hpa-boxeo.yaml
+kubectl apply -f hpa-natacion.yaml

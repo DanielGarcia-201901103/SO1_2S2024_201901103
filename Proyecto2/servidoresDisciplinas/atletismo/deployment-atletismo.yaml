@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: atletismo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: atletismo
+  template:
+    metadata:
+      labels:
+        app: atletismo
+    spec:
+      containers:
+      - name: atletismo
+        image: gcr.io/[YOUR_PROJECT_ID]/atletismo:v1
+        ports:
+        - containerPort: 8083
+        env:
+        - name: KAFKA_BROKER
+          value: "kafka-service:9092"  # Dirección de Kafka en Kubernetes
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: atletismo-service
+spec:
+  selector:
+    app: atletismo
+  ports:
+  - protocol: TCP
+    port: 8083
+    targetPort: 8083
+  type: ClusterIP
