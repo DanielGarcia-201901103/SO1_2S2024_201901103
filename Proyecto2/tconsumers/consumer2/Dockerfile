@@ -11,7 +11,7 @@ COPY . .
 RUN go mod download
 
 # Compila la aplicación
-RUN CGO_ENABLED=0 GOOS=linux go build -o consumer1 .
+RUN CGO_ENABLED=0 GOOS=linux go build -o consumer2 .
 
 # Usa una imagen base más ligera para el contenedor final
 FROM alpine:latest
@@ -20,7 +20,7 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 
 # Copia el binario desde el contenedor builder
-COPY --from=builder /app/consumer1 .
+COPY --from=builder /app/consumer2 .
 
 # Define el comando por defecto para ejecutar la aplicación
-CMD ["./consumer1"]
+CMD ["./consumer2"]

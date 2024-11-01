@@ -1,4 +1,4 @@
-atletismo
+atletismo ********************************************************************************
 go mod init myservers
 go get google.golang.org/grpc
 go get github.com/segmentio/kafka-go
@@ -6,7 +6,11 @@ go get github.com/segmentio/kafka-go
 protoc --go_out=. --go-grpc_out=. student_service.proto
 go run atletismo.go
 
-boxeo
+Dockerfile
+docker build -t atletismo_api .
+docker run -p 8083:8083 atletismo_api
+
+boxeo ***********************************************************************************
 go mod init myservers1
 go get google.golang.org/grpc
 go get github.com/segmentio/kafka-go
@@ -14,10 +18,88 @@ go get github.com/segmentio/kafka-go
 protoc --go_out=. --go-grpc_out=. student_service.proto
 go run boxeo.go
 
-natacion
+Dockerfile
+docker build -t boxeo_api .
+docker run -p 8084:8084 boxeo_api
+
+
+natacion *********************************************************************************
 go mod init myservers2
 go get google.golang.org/grpc
 go get github.com/segmentio/kafka-go
 
 protoc --go_out=. --go-grpc_out=. student_service.proto
 go run natacion.go
+
+
+Dockerfile
+docker build -t natacion_api .
+docker run -p 8082:8082 natacion_api
+
+
+
+
+
+
+
+********************************************
+# Run the first container
+docker run --name atletismo -d atletismo:latest
+
+# Run the second container
+docker run --name boxeo -d boxeo:latest
+
+# Run the third container
+docker run --name natacion -d natacion:latest
+
+
+
+
+
+
+
+
+
+
+
+
+
+Eliminar el contenedor
+docker stop <container_id>
+docker rm <container_id>
+
+docker build -t go-api:latest .
+docker run -p 8083:8083 go-api:latest
+docker logs <container_id>
+
+Elimina todos los contenedores detenidos
+docker container prune
+
+
+Eliminar todo con todo e imagenes
+docker stop $(docker ps -q) && docker rm $(docker ps -a -q) && docker rmi $(docker images -q)
+
+Eliminar cuando se usa  Docker Compose
+docker-compose down --rmi all -v --remove-orphans
+
+*********************
+6. Using Docker Compose (Optional)
+If you find yourself needing to manage multiple containers frequently, consider using Docker Compose. 
+With Docker Compose, you can define all your containers in a single docker-compose.yml file. Here’s a simple example:
+
+version: '3'
+services:
+  app1:
+    image: myapp:latest
+    container_name: myapp_container1
+
+  app2:
+    image: myapp:latest
+    container_name: myapp_container2
+
+  app3:
+    image: myapp:latest
+    container_name: myapp_container3
+
+To start all containers defined in the docker-compose.yml, run:
+docker-compose up -d

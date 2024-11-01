@@ -1,13 +1,56 @@
-Consumer1
+Consumer1 *************************************************************************
 go mod init myconsumer1
 go get github.com/segmentio/kafka-go
 go get github.com/go-redis/redis/v8
 
 go run consumer1.go
 
-Consumer2
+
+Dockerfile
+docker build -t consumer1_api .
+//docker run -p 8083:8083 consumer1_api
+
+docker build -t consumer1_api .
+docker run --name consumer1_api --network host consumer1_api
+
+
+Para volverlo a ejecutar
+docker start consumer1_api
+Otra opción es renombrar el contenedor
+docker run --name consumer1_api_v2 --network host consumer1_api
+
+Otra opcion es eliminar y volver a correr con el primer comando que tiene el mismo nombre
+# Detener el contenedor (si está en ejecución)
+docker stop consumer1_api
+
+# Eliminar el contenedor
+docker rm consumer1_api
+
+Consumer2 *************************************************************************
 go mod init myconsumer2
 go get github.com/segmentio/kafka-go
 go get github.com/go-redis/redis/v8
 
 go run consumer2.go
+
+
+
+Dockerfile
+docker build -t consumer2_api .
+//docker run -p 8083:8083 consumer2_api
+
+docker build -t consumer2_api .
+docker run --name consumer2_api --network host consumer2_api
+
+
+Para volverlo a ejecutar
+docker start consumer2_api
+Otra opción es renombrar el contenedor
+docker run --name consumer2_api_v2 --network host consumer2_api
+
+Otra opcion es eliminar y volver a correr con el primer comando que tiene el mismo nombre
+# Detener el contenedor (si está en ejecución)
+docker stop consumer2_api
+
+# Eliminar el contenedor
+docker rm consumer2_api
